@@ -89,23 +89,23 @@
 
     // Lista inicial — usaremos IDs fixos para cada link (ajuste se quiser)
     const LINKS = [
-      {id:'p1', title:'Loja 1', url:'https://br.shp.ee/7YBiQ5M'},
-      {id:'p2', title:'Loja 2', url:'https://br.shp.ee/uCAw5xM'},
-      {id:'p3', title:'Boticário - Kit', url:'https://www.boticario.com.br/kit-presente-natal-cuidese-bem-deleite-4-itens/'},
-      {id:'p4', title:'Loja 4', url:'https://br.shp.ee/XPA8HVP'},
-      {id:'p5', title:'Loja 5', url:'https://br.shp.ee/1Jxww2N'},
-      {id:'p6', title:'Loja 6', url:'https://br.shp.ee/MQDsaJE'},
-      {id:'p7', title:'Shein 1', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz90QSvFNR_8_1&localcountry=BR&url_from=GM73804838445http://api----- shein.shein.com/h5/sharejump/appjump?link=lJzBiNvQ3xV_8_1&localcountry=BR&url_from=GM73804838445'},
-      {id:'p8', title:'Shein 2', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzBfmlrbUV_8_1&localcountry=BR&url_from=GM73804838445'},
-      {id:'p9', title:'Shein 3', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6700TTqJ_8_1&localcountry=BR&url_from=GM73804838445'},
-      {id:'p10', title:'Shein 4', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz5byXEj1u_8_1&localcountry=BR&url_from=GM73804838445'},
-      {id:'p11', title:'Shein 5', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz5JscMcD0_8_1&localcountry=BR&url_from=GM73804838445'},
-      {id:'p12', title:'Shein 6', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6kOOpUWH_8_1&localcountry=BR&url_from=GM73804838445'},
-      {id:'p13', title:'Shein 7', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6x4aFsL4_8_1&localcountry=BR&url_from=GM73804838445'},
-      {id:'p14', title:'Shein 8', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzQkKsk5eh_8_1&localcountry=BR&url_from=GM73804838445'},
-      {id:'p15', title:'Shein 9', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzQmKapQOJ_8_1&localcountry=BR&url_from=GM73804838445'},
-      {id:'p16', title:'Shein 10', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzJ8Qfu7A6_8_1&localcountry=BR&url_from=GM73804838445'},
-      {id:'p17', title:'Shein 11', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzJrfeMZMS_8_1&localcountry=BR&url_from=GM73804838445'}
+      {id:'p1', title:'Modelador de Cachos Elétrico', url:'https://br.shp.ee/7YBiQ5M'},
+      {id:'p2', title:'Combo Deleite (Hitratante e Body Splash)', url:'https://br.shp.ee/uCAw5xM'},
+      {id:'p3', title:'Kit Deleite', url:'https://www.boticario.com.br/kit-presente-natal-cuidese-bem-deleite-4-itens/'},
+      {id:'p4', title:'Body Splash Deleite', url:'https://br.shp.ee/XPA8HVP'},
+      {id:'p5', title:'Kit ilía Secreto', url:'https://br.shp.ee/1Jxww2N'},
+      {id:'p6', title:'Perfume Natura ilía Secreto', url:'https://br.shp.ee/MQDsaJE'},
+      {id:'p7', title:'Lumiss Sandália Tamanco Feminino', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz90QSvFNR_8_1&localcountry=BR&url_from=GM73804838445http://api----- shein.shein.com/h5/sharejump/appjump?link=lJzBiNvQ3xV_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p8', title:'Tamanco quadrado salto baixo', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzBfmlrbUV_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p9', title:'Calça Pantalona Feminina', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6700TTqJ_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p10', title:'Bolsa Feminina de Ombro', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz5byXEj1u_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p11', title:'Bolsa Feminina Veludo', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz5JscMcD0_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p12', title:'Casaco Jaqueta Feminina', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6kOOpUWH_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p13', title:'Saia de Cetim Midi', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6x4aFsL4_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p14', title:'Paleta de Sombras 11 Cores', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzQkKsk5eh_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p15', title:'Paleta Sombra Color Trend', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzQmKapQOJ_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p16', title:'Blush Sunny Cheeks', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzJ8Qfu7A6_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p17', title:'Blush Compacto Ricosti', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzJrfeMZMS_8_1&localcountry=BR&url_from=GM73804838445'}
     ];
 
     // Renderiza itens na página e adiciona handlers
