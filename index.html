@@ -67,7 +67,13 @@
     */
 
     // --- COLE AQUI O SEU FIREBASE CONFIG ---
-    
+ <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyDCsGvDWEbaoYFEZCCSovkkyqUbAYF6jjM",
     authDomain: "lista-presentes-euphoria.firebaseapp.com",
@@ -81,14 +87,6 @@
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
 </script>
-    };
-
-    // Inicializa Firebase (se houver config)
-    let db=null;
-    if(FIREBASE_CONFIG && FIREBASE_CONFIG.databaseURL){
-      firebase.initializeApp(FIREBASE_CONFIG);
-      db = firebase.database();
-    }
 
     // Lista inicial — usaremos IDs fixos para cada link (ajuste se quiser)
     const LINKS = [
@@ -197,6 +195,7 @@
   </script>
 </body>
 </html>
+
 
 
 
