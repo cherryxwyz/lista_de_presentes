@@ -118,14 +118,18 @@
         div.className='card';
         const comprado = state[item.id] && state[item.id].comprado;
         div.innerHTML = `
-          <h3 class="title">${escapeHtml(item.title)}</h3>
-          <div class="meta"><a class="link-btn ${comprado? 'comprado':''}" href="${escapeHtml(item.url)}" target="_blank">Abrir link</a><span class="status">${comprado? 'Comprado':'Disponível'}</span></div>
-          <div style="margin-top:8px">
-            <button class="btn" onclick="toggleComprado('${item.id}', this)">${comprado? 'Desmarcar como comprado' : 'Marcar como comprado'}</button>
-          </div>`;
-        grid.appendChild(div);
-      });
-    }
+  <h3 class="title">${escapeHtml(item.title)}</h3>
+  <div class="meta">
+    <a class="link-btn ${comprado ? 'comprado' : ''}" href="${escapeHtml(item.url)}" target="_blank">Abrir link</a>
+    <span class="status">${comprado ? 'Comprado' : 'Disponível'}</span>
+  </div>
+  <div style="margin-top:8px">
+    <button class="btn" onclick="toggleComprado('${item.id}', this)">
+      ${comprado ? 'Desmarcar como comprado' : 'Marcar como comprado'}
+    </button>
+  </div>
+`;
+
 
     // Escape simples para evitar injeção acidental
     function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -195,6 +199,7 @@
   </script>
 </body>
 </html>
+
 
 
 
