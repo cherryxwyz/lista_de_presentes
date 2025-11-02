@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lista de Presentes — Tema Euphoria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg1:#0f0716;--accent1:#ff6bdc;--accent2:#7afcff;--card: rgba(255,255,255,0.04)}
+    *{box-sizing:border-box}
+    body{margin:0;padding:40px 24px;font-family:Poppins,Arial;color:#e8e8ee;background:radial-gradient(circle at 20% 20%,#7afcff10,transparent 60%),radial-gradient(circle at 80% 80%,#ff6bdc10,transparent 60%),#0f0716}
+    .container{max-width:980px;margin:0 auto}
+    header{display:flex;gap:16px;align-items:center}
+    .logo{width:64px;height:64px;border-radius:14px;background:linear-gradient(135deg,var(--accent1),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#111;font-family:Playfair Display}
+    h1{font-family:Playfair Display;margin:0}
+    .controls{margin-left:auto}
+    .btn{padding:8px 12px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#fff;cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:24px}
+    .card{background:var(--card);border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(8px);position:relative;transition:transform .2s}
+    .card:hover{transform:translateY(-4px)}
+    .title{font-weight:700;margin:0 0 8px}
+    .meta{font-size:13px;opacity:0.9;margin-bottom:10px}
+    .link-btn{display:inline-block;padding:8px 10px;border-radius:10px;background:transparent;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,0.06);font-weight:700}
+    .comprado{opacity:0.5;text-decoration:line-through;pointer-events:none}
+    .status{font-size:13px;margin-left:8px}
+    .small{font-size:13px;opacity:0.9}
+    .note{margin-top:10px;font-size:13px;color:#d4cbe0}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">EUPH</div>
+      <div>
+        <h1>Minha Lista de Presentes</h1>
+        <div class="small">Tema: Euphoria — neons suaves e vidro fosco</div>
+      </div>
+      <div class="controls">
+        <button class="btn" onclick="promptAdd()">+ Adicionar</button>
+        <button class="btn" onclick="clearAll()">Limpar (apagar dados compartilhados)</button>
+      </div>
+    </header>
+
+    <main>
+      <p class="note">Importante: esta versão usa o Firebase Realtime Database para que **qualquer pessoa que abrir o site veja as marcações de comprado em tempo real**. Veja instruções nos comentários abaixo. (Se você não quiser usar Firebase, posso mudar para outra solução.)</p>
+
+      <div class="grid" id="grid">
+        <!-- Cada item tem data-id único. Se quiser, substitua os títulos. -->
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <script>
+    /*
+      COMO CONFIGURAR (passos rápidos):
+      1) Crie um projeto no Firebase: https://console.firebase.google.com/
+      2) No menu "Realtime Database" crie um banco e defina regras públicas temporariamente para testar (ou configure autenticação).
+      3) Copie as configurações do seu app (objeto firebaseConfig) e cole em FIREBASE_CONFIG abaixo.
+      4) Salve e abra a página: agora as marcações são compartilhadas em tempo real.
+
+      Segurança: para produção recomendo configurar regras que permitam escrita apenas com alguma autenticação/token, ou usar Firebase Authentication.
+    */
+
+    // --- COLE AQUI O SEU FIREBASE CONFIG ---
+    const FIREBASE_CONFIG = {
+      // exemplo:
+      // apiKey: "...",
+      // authDomain: "seuprojeto.firebaseapp.com",
+      // databaseURL: "https://seuprojeto-default-rtdb.firebaseio.com",
+      // projectId: "seuprojeto",
+      // storageBucket: "seuprojeto.appspot.com",
+      // messagingSenderId: "...",
+      // appId: "..."
+    };
+
+    // Inicializa Firebase (se houver config)
+    let db=null;
+    if(FIREBASE_CONFIG && FIREBASE_CONFIG.databaseURL){
+      firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.database();
+    }
+
+    // Lista inicial — usaremos IDs fixos para cada link (ajuste se quiser)
+    const LINKS = [
+      {id:'p1', title:'Loja 1', url:'https://br.shp.ee/7YBiQ5M'},
+      {id:'p2', title:'Loja 2', url:'https://br.shp.ee/uCAw5xM'},
+      {id:'p3', title:'Boticário - Kit', url:'https://www.boticario.com.br/kit-presente-natal-cuidese-bem-deleite-4-itens/'},
+      {id:'p4', title:'Loja 4', url:'https://br.shp.ee/XPA8HVP'},
+      {id:'p5', title:'Loja 5', url:'https://br.shp.ee/1Jxww2N'},
+      {id:'p6', title:'Loja 6', url:'https://br.shp.ee/MQDsaJE'},
+      {id:'p7', title:'Shein 1', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz90QSvFNR_8_1&localcountry=BR&url_from=GM73804838445http://api----- shein.shein.com/h5/sharejump/appjump?link=lJzBiNvQ3xV_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p8', title:'Shein 2', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzBfmlrbUV_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p9', title:'Shein 3', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6700TTqJ_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p10', title:'Shein 4', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz5byXEj1u_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p11', title:'Shein 5', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz5JscMcD0_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p12', title:'Shein 6', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6kOOpUWH_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p13', title:'Shein 7', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6x4aFsL4_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p14', title:'Shein 8', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzQkKsk5eh_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p15', title:'Shein 9', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzQmKapQOJ_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p16', title:'Shein 10', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzJ8Qfu7A6_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p17', title:'Shein 11', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzJrfeMZMS_8_1&localcountry=BR&url_from=GM73804838445'}
+    ];
+
+    // Renderiza itens na página e adiciona handlers
+    function renderList(state={}){
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      LINKS.forEach(item=>{
+        const div = document.createElement('article');
+        div.className='card';
+        const comprado = state[item.id] && state[item.id].comprado;
+        div.innerHTML = `
+          <h3 class="title">${escapeHtml(item.title)}</h3>
+          <div class="meta"><a class="link-btn ${comprado? 'comprado':''}" href="${escapeHtml(item.url)}" target="_blank">Abrir link</a><span class="status">${comprado? 'Comprado':'Disponível'}</span></div>
+          <div style="margin-top:8px">
+            <button class="btn" onclick="toggleComprado('${item.id}', this)">${comprado? 'Desmarcar como comprado' : 'Marcar como comprado'}</button>
+          </div>`;
+        grid.appendChild(div);
+      });
+    }
+
+    // Escape simples para evitar injeção acidental
+    function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    // Quando usuário marca/desmarca, atualiza DB (se configurado) e outro listeners recebem
+    function toggleComprado(itemId, btn){
+      const path = '/presentes/' + itemId;
+      // otimista: mostra mudança localmente
+      // se DB não estiver configurado, usa localStorage compartilhado por máquina (fallback)
+      if(db){
+        const ref = db.ref(path);
+        ref.once('value').then(snap=>{
+          const cur = snap.val() || {};
+          const novo = {comprado: !cur.comprado, ts: Date.now()};
+          ref.set(novo);
+        });
+      }else{
+        // fallback localStorage per-user (não sincroniza entre pessoas)
+        const states = JSON.parse(localStorage.getItem('presentesState')||'{}');
+        states[itemId] = {comprado: !(states[itemId] && states[itemId].comprado), ts: Date.now()};
+        localStorage.setItem('presentesState', JSON.stringify(states));
+        renderList(states);
+      }
+    }
+
+    // Se DB configurado: escuta mudanças em /presentes e renderiza
+    function listenRealtime(){
+      if(!db) return;
+      const ref = db.ref('/presentes');
+      ref.on('value', snapshot=>{
+        const state = snapshot.val() || {};
+        renderList(state);
+      });
+    }
+
+    // Limpar dados compartilhados no Firebase (cuidado!) — sobrescreve /presentes
+    function clearAll(){
+      if(db){
+        if(!confirm('Apagar TODOS os estados compartilhados (marcação de comprado) no banco?')) return;
+        db.ref('/presentes').remove();
+      }else{
+        localStorage.removeItem('presentesState');
+        renderList({});
+      }
+    }
+
+    // Carrega estado inicial: Primeiro tenta Realtime DB; se não houver config usa localStorage
+    function init(){
+      if(db){
+        // inicializa itens vazios no DB caso não existam (não estritamente necessário)
+        db.ref('/presentes').once('value').then(snap=>{
+          if(!snap.exists()){
+            const initObj = {};
+            LINKS.forEach(i=>initObj[i.id]={comprado:false,ts:0});
+            db.ref('/presentes').set(initObj);
+          }
+          listenRealtime();
+        });
+      }else{
+        const states = JSON.parse(localStorage.getItem('presentesState')||'{}');
+        renderList(states);
+      }
+    }
+
+    // inicializa
+    init();
+  </script>
+</body>
+</html>
