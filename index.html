@@ -35,7 +35,7 @@
       <div class="logo">EUPH</div>
       <div>
         <h1>Minha Lista de Presentes</h1>
-        <div class="small">Tema: Euphoria</div>
+        <div class="small">Tema: Euphoria — neons suaves e vidro fosco</div>
       </div>
       <div class="controls">
         <button class="btn" onclick="promptAdd()">+ Adicionar</button>
@@ -43,7 +43,9 @@
       </div>
     </header>
 
-   
+    <main>
+      <p class="note">Importante: esta versão usa o Firebase Realtime Database para que **qualquer pessoa que abrir o site veja as marcações de comprado em tempo real**. Veja instruções nos comentários abaixo. (Se você não quiser usar Firebase, posso mudar para outra solução.)</p>
+
       <div class="grid" id="grid">
         <!-- Cada item tem data-id único. Se quiser, substitua os títulos. -->
 
@@ -67,26 +69,23 @@
     */
 
     // --- COLE AQUI O SEU FIREBASE CONFIG ---
- <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+    const FIREBASE_CONFIG = {
+      // exemplo:
+      // apiKey: "...",
+      // authDomain: "seuprojeto.firebaseapp.com",
+      // databaseURL: "https://seuprojeto-default-rtdb.firebaseio.com",
+      // projectId: "seuprojeto",
+      // storageBucket: "seuprojeto.appspot.com",
+      // messagingSenderId: "...",
+      // appId: "..."
+    };
 
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyDCsGvDWEbaoYFEZCCSovkkyqUbAYF6jjM",
-    authDomain: "lista-presentes-euphoria.firebaseapp.com",
-    databaseURL: "https://lista-presentes-euphoria-default-rtdb.firebaseio.com",
-    projectId: "lista-presentes-euphoria",
-    storageBucket: "lista-presentes-euphoria.firebasestorage.app",
-    messagingSenderId: "150673812101",
-    appId: "1:150673812101:web:4103f3beb592f5ae1dd7ec"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
+    // Inicializa Firebase (se houver config)
+    let db=null;
+    if(FIREBASE_CONFIG && FIREBASE_CONFIG.databaseURL){
+      firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.database();
+    }
 
     // Lista inicial — usaremos IDs fixos para cada link (ajuste se quiser)
     const LINKS = [
@@ -118,18 +117,14 @@
         div.className='card';
         const comprado = state[item.id] && state[item.id].comprado;
         div.innerHTML = `
-  <h3 class="title">${escapeHtml(item.title)}</h3>
-  <div class="meta">
-    <a class="link-btn ${comprado ? 'comprado' : ''}" href="${escapeHtml(item.url)}" target="_blank">Abrir link</a>
-    <span class="status">${comprado ? 'Comprado' : 'Disponível'}</span>
-  </div>
-  <div style="margin-top:8px">
-    <button class="btn" onclick="toggleComprado('${item.id}', this)">
-      ${comprado ? 'Desmarcar como comprado' : 'Marcar como comprado'}
-    </button>
-  </div>
-`;
-
+          <h3 class="title">${escapeHtml(item.title)}</h3>
+          <div class="meta"><a class="link-btn ${comprado? 'comprado':''}" href="${escapeHtml(item.url)}" target="_blank">Abrir link</a><span class="status">${comprado? 'Comprado':'Disponível'}</span></div>
+          <div style="margin-top:8px">
+            <button class="btn" onclick="toggleComprado('${item.id}', this)">${comprado? 'Desmarcar como comprado' : 'Marcar como comprado'}</button>
+          </div>`;
+        grid.appendChild(div);
+      });
+    }
 
     // Escape simples para evitar injeção acidental
     function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -199,8 +194,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
