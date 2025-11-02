@@ -27,8 +27,6 @@
     .status{font-size:13px;margin-left:8px}
     .small{font-size:13px;opacity:0.9}
     .note{margin-top:10px;font-size:13px;color:#d4cbe0}
-    .card img{transition: transform 0.3s ease, opacity 0.3s ease;}
-    .card:hover img{transform: scale(1.05);opacity:1;}
   </style>
 </head>
 <body>
@@ -46,7 +44,12 @@
     </header>
 
     <main>
-      <div class="grid" id="grid"></div>
+      <p class="note">Importante: esta versão usa o Firebase Realtime Database para que **qualquer pessoa que abrir o site veja as marcações de comprado em tempo real**. Veja instruções nos comentários abaixo. (Se você não quiser usar Firebase, posso mudar para outra solução.)</p>
+
+      <div class="grid" id="grid">
+        <!-- Cada item tem data-id único. Se quiser, substitua os títulos. -->
+
+      </div>
     </main>
   </div>
 
@@ -55,24 +58,36 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
   <script>
-    // === CONFIGURE FIREBASE AQUI ===
+    /*
+      COMO CONFIGURAR (passos rápidos):
+      1) Crie um projeto no Firebase: https://console.firebase.google.com/
+      2) No menu "Realtime Database" crie um banco e defina regras públicas temporariamente para testar (ou configure autenticação).
+      3) Copie as configurações do seu app (objeto firebaseConfig) e cole em FIREBASE_CONFIG abaixo.
+      4) Salve e abra a página: agora as marcações são compartilhadas em tempo real.
+
+      Segurança: para produção recomendo configurar regras que permitam escrita apenas com alguma autenticação/token, ou usar Firebase Authentication.
+    */
+
+    // --- COLE AQUI O SEU FIREBASE CONFIG ---
     const FIREBASE_CONFIG = {
+      // exemplo:
       // apiKey: "...",
-      // authDomain: "...",
-      // databaseURL: "...",
-      // projectId: "...",
-      // storageBucket: "...",
+      // authDomain: "seuprojeto.firebaseapp.com",
+      // databaseURL: "https://seuprojeto-default-rtdb.firebaseio.com",
+      // projectId: "seuprojeto",
+      // storageBucket: "seuprojeto.appspot.com",
       // messagingSenderId: "...",
       // appId: "..."
     };
 
+    // Inicializa Firebase (se houver config)
     let db=null;
     if(FIREBASE_CONFIG && FIREBASE_CONFIG.databaseURL){
       firebase.initializeApp(FIREBASE_CONFIG);
       db = firebase.database();
     }
 
-    // Lista inicial com IDs únicos e links
+    // Lista inicial — usaremos IDs fixos para cada link (ajuste se quiser)
     const LINKS = [
       {id:'p1', title:'Loja 1', url:'https://br.shp.ee/7YBiQ5M'},
       {id:'p2', title:'Loja 2', url:'https://br.shp.ee/uCAw5xM'},
@@ -93,70 +108,89 @@
       {id:'p17', title:'Shein 11', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzJrfeMZMS_8_1&localcountry=BR&url_from=GM73804838445'}
     ];
 
-    const PROXY_URL = "https://lista-de-presentes-euphoria.vercel.app/api/extract?url=";
-
-    async function fetchProductMeta(url) {
-      if (!url || url === '#' || url === 'INSERT_LINK_HERE') return null;
-      try {
-        const res = await fetch(PROXY_URL + encodeURIComponent(url));
-        const data = await res.json();
-        if (data.image) return data;
-      } catch (e) { console.warn("Erro ao buscar imagem:", e); }
-      return null;
-    }
-
-    async function addCard(title, meta, url) {
+    // Renderiza itens na página e adiciona handlers
+    function renderList(state={}){
       const grid = document.getElementById('grid');
-      const art = document.createElement('article');
-      art.className='card';
-      art.innerHTML = `
-        <div class="neon-stroke"></div>
-        <div class="img-wrap" style="border-radius:10px;overflow:hidden;margin-bottom:8px;">
-          <img src="" alt="${title}" style="width:100%;height:180px;object-fit:cover;opacity:0.9;border-radius:12px;" />
-        </div>
-        <h3 class="title"></h3>
-        <div class="meta"></div>
-        <a class="link-btn" target="_blank"></a>
-        <button class="btn small" onclick="toggleComprado(this)">Marcar como comprado</button>
-      `;
-      art.querySelector('.title').textContent = title;
-      art.querySelector('.meta').textContent = meta;
-      const a = art.querySelector('.link-btn');
-      a.textContent = 'Abrir link';
-      a.href = url;
-      a.setAttribute('data-url', url);
-      const imgEl = art.querySelector('img');
-      const info = await fetchProductMeta(url);
-      if (info && info.image) {
-        imgEl.src = info.image;
-        if (info.title && (!title || title === "Presente novo")) {
-          art.querySelector('.title').textContent = info.title;
-        }
-      } else {
-        imgEl.src = 'https://placehold.co/400x300/1e1128/ffffff?text=Sem+imagem';
+      grid.innerHTML = '';
+      LINKS.forEach(item=>{
+        const div = document.createElement('article');
+        div.className='card';
+        const comprado = state[item.id] && state[item.id].comprado;
+        div.innerHTML = `
+          <h3 class="title">${escapeHtml(item.title)}</h3>
+          <div class="meta"><a class="link-btn ${comprado? 'comprado':''}" href="${escapeHtml(item.url)}" target="_blank">Abrir link</a><span class="status">${comprado? 'Comprado':'Disponível'}</span></div>
+          <div style="margin-top:8px">
+            <button class="btn" onclick="toggleComprado('${item.id}', this)">${comprado? 'Desmarcar como comprado' : 'Marcar como comprado'}</button>
+          </div>`;
+        grid.appendChild(div);
+      });
+    }
+
+    // Escape simples para evitar injeção acidental
+    function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    // Quando usuário marca/desmarca, atualiza DB (se configurado) e outro listeners recebem
+    function toggleComprado(itemId, btn){
+      const path = '/presentes/' + itemId;
+      // otimista: mostra mudança localmente
+      // se DB não estiver configurado, usa localStorage compartilhado por máquina (fallback)
+      if(db){
+        const ref = db.ref(path);
+        ref.once('value').then(snap=>{
+          const cur = snap.val() || {};
+          const novo = {comprado: !cur.comprado, ts: Date.now()};
+          ref.set(novo);
+        });
+      }else{
+        // fallback localStorage per-user (não sincroniza entre pessoas)
+        const states = JSON.parse(localStorage.getItem('presentesState')||'{}');
+        states[itemId] = {comprado: !(states[itemId] && states[itemId].comprado), ts: Date.now()};
+        localStorage.setItem('presentesState', JSON.stringify(states));
+        renderList(states);
       }
-      grid.appendChild(art);
     }
 
-    function promptAdd(){
-      const title = prompt('Título do presente (ex: Caneca estilosa)') || 'Presente novo';
-      const meta = prompt('Observação/Loja (opcional)') || '';
-      const url = prompt('Cole o link completo (https://...)') || '#';
-      addCard(title,meta,url);
+    // Se DB configurado: escuta mudanças em /presentes e renderiza
+    function listenRealtime(){
+      if(!db) return;
+      const ref = db.ref('/presentes');
+      ref.on('value', snapshot=>{
+        const state = snapshot.val() || {};
+        renderList(state);
+      });
     }
 
+    // Limpar dados compartilhados no Firebase (cuidado!) — sobrescreve /presentes
     function clearAll(){
       if(db){
         if(!confirm('Apagar TODOS os estados compartilhados (marcação de comprado) no banco?')) return;
         db.ref('/presentes').remove();
       }else{
         localStorage.removeItem('presentesState');
-        document.getElementById('grid').innerHTML='';
+        renderList({});
       }
     }
 
-    // Inicializa a lista
-    LINKS.forEach(item=>addCard(item.title,'',item.url));
+    // Carrega estado inicial: Primeiro tenta Realtime DB; se não houver config usa localStorage
+    function init(){
+      if(db){
+        // inicializa itens vazios no DB caso não existam (não estritamente necessário)
+        db.ref('/presentes').once('value').then(snap=>{
+          if(!snap.exists()){
+            const initObj = {};
+            LINKS.forEach(i=>initObj[i.id]={comprado:false,ts:0});
+            db.ref('/presentes').set(initObj);
+          }
+          listenRealtime();
+        });
+      }else{
+        const states = JSON.parse(localStorage.getItem('presentesState')||'{}');
+        renderList(states);
+      }
+    }
+
+    // inicializa
+    init();
   </script>
 </body>
 </html>
