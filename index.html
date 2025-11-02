@@ -27,7 +27,6 @@
     .status{font-size:13px;margin-left:8px}
     .small{font-size:13px;opacity:0.9}
     .note{margin-top:10px;font-size:13px;color:#d4cbe0}
-    img.card-img{width:100%;border-radius:10px;margin-bottom:10px;object-fit:cover;height:200px;}
   </style>
 </head>
 <body>
@@ -44,11 +43,10 @@
       </div>
     </header>
 
-    <main>
-      <p class="note">Importante: esta versão usa o Firebase Realtime Database para que **qualquer pessoa que abrir o site veja as marcações de comprado em tempo real**. Veja instruções nos comentários abaixo.</p>
-
+    
       <div class="grid" id="grid">
-        <!-- Cada item tem data-id único -->
+        <!-- Cada item tem data-id único. Se quiser, substitua os títulos. -->
+
       </div>
     </main>
   </div>
@@ -58,67 +56,82 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
   <script>
+    /*
+      COMO CONFIGURAR (passos rápidos):
+      1) Crie um projeto no Firebase: https://console.firebase.google.com/
+      2) No menu "Realtime Database" crie um banco e defina regras públicas temporariamente para testar (ou configure autenticação).
+      3) Copie as configurações do seu app (objeto firebaseConfig) e cole em FIREBASE_CONFIG abaixo.
+      4) Salve e abra a página: agora as marcações são compartilhadas em tempo real.
+
+      Segurança: para produção recomendo configurar regras que permitam escrita apenas com alguma autenticação/token, ou usar Firebase Authentication.
+    */
+
+    // --- COLE AQUI O SEU FIREBASE CONFIG ---
     const FIREBASE_CONFIG = {
-      // coloque sua config aqui
+      // exemplo:
+      // apiKey: "...",
+      // authDomain: "seuprojeto.firebaseapp.com",
+      // databaseURL: "https://seuprojeto-default-rtdb.firebaseio.com",
+      // projectId: "seuprojeto",
+      // storageBucket: "seuprojeto.appspot.com",
+      // messagingSenderId: "...",
+      // appId: "..."
     };
 
+    // Inicializa Firebase (se houver config)
     let db=null;
     if(FIREBASE_CONFIG && FIREBASE_CONFIG.databaseURL){
       firebase.initializeApp(FIREBASE_CONFIG);
       db = firebase.database();
     }
 
+    // Lista inicial — usaremos IDs fixos para cada link (ajuste se quiser)
     const LINKS = [
       {id:'p1', title:'Modelador de Cachos Elétrico', url:'https://br.shp.ee/7YBiQ5M'},
       {id:'p2', title:'Combo Deleite (Hitratante e Body Splash)', url:'https://br.shp.ee/uCAw5xM'},
       {id:'p3', title:'Kit Deleite', url:'https://www.boticario.com.br/kit-presente-natal-cuidese-bem-deleite-4-itens/'},
       {id:'p4', title:'Body Splash Deleite', url:'https://br.shp.ee/XPA8HVP'},
-      {id:'p5', title:'Kit ilía Secreto', url:'https://br.shp.ee/1Jxww2N'}
-      // adicione o resto...
+      {id:'p5', title:'Kit ilía Secreto', url:'https://br.shp.ee/1Jxww2N'},
+      {id:'p6', title:'Perfume Natura ilía Secreto', url:'https://br.shp.ee/MQDsaJE'},
+      {id:'p7', title:'Lumiss Sandália Tamanco Feminino', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz90QSvFNR_8_1&localcountry=BR&url_from=GM73804838445http://api----- shein.shein.com/h5/sharejump/appjump?link=lJzBiNvQ3xV_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p8', title:'Tamanco quadrado salto baixo', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzBfmlrbUV_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p9', title:'Calça Pantalona Feminina', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6700TTqJ_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p10', title:'Bolsa Feminina de Ombro', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz5byXEj1u_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p11', title:'Bolsa Feminina Veludo', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz5JscMcD0_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p12', title:'Casaco Jaqueta Feminina', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6kOOpUWH_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p13', title:'Saia de Cetim Midi', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJz6x4aFsL4_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p14', title:'Paleta de Sombras 11 Cores', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzQkKsk5eh_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p15', title:'Paleta Sombra Color Trend', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzQmKapQOJ_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p16', title:'Blush Sunny Cheeks', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzJ8Qfu7A6_8_1&localcountry=BR&url_from=GM73804838445'},
+      {id:'p17', title:'Blush Compacto Ricosti', url:'http://api-shein.shein.com/h5/sharejump/appjump?link=lJzJrfeMZMS_8_1&localcountry=BR&url_from=GM73804838445'}
     ];
 
-    // simples escape
-    function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-
-    // Função para tentar pegar imagem do og:image
-    async function fetchImage(url){
-      try {
-        const proxy = 'https://api.allorigins.win/get?url='; // proxy para burlar CORS
-        const res = await fetch(proxy + encodeURIComponent(url));
-        const data = await res.json();
-        const html = new DOMParser().parseFromString(data.contents,'text/html');
-        const og = html.querySelector("meta[property='og:image']");
-        if(og) return og.content;
-      } catch(e){
-        console.log('Erro fetch imagem:', url,e);
-      }
-      return null;
-    }
-
-    async function renderList(state = {}) {
+    // Renderiza itens na página e adiciona handlers
+    function renderList(state={}){
       const grid = document.getElementById('grid');
       grid.innerHTML = '';
-      for(const item of LINKS){
-        let imgSrc = item.img || await fetchImage(item.url);
-        const comprado = state[item.id] && state[item.id].comprado;
+      LINKS.forEach(item=>{
         const div = document.createElement('article');
         div.className='card';
+        const comprado = state[item.id] && state[item.id].comprado;
         div.innerHTML = `
-          ${imgSrc ? `<img class="card-img" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(item.title)}">` : ''}
           <h3 class="title">${escapeHtml(item.title)}</h3>
-          <div class="meta">
-            <a class="link-btn ${comprado ? 'comprado':''}" href="${escapeHtml(item.url)}" target="_blank">Abrir link</a>
-            <span class="status">${comprado ? 'Comprado':'Disponível'}</span>
-          </div>
+          <div class="meta"><a class="link-btn ${comprado? 'comprado':''}" href="${escapeHtml(item.url)}" target="_blank">Abrir link</a><span class="status">${comprado? 'Comprado':'Disponível'}</span></div>
           <div style="margin-top:8px">
-            <button class="btn" onclick="toggleComprado('${item.id}', this)">${comprado ? 'Desmarcar como comprado' : 'Marcar como comprado'}</button>
+            <button class="btn" onclick="toggleComprado('${item.id}', this)">${comprado? 'Desmarcar como comprado' : 'Marcar como comprado'}</button>
           </div>`;
         grid.appendChild(div);
-      }
+      });
     }
 
+    // Escape simples para evitar injeção acidental
+    function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    // Quando usuário marca/desmarca, atualiza DB (se configurado) e outro listeners recebem
     function toggleComprado(itemId, btn){
       const path = '/presentes/' + itemId;
+      // otimista: mostra mudança localmente
+      // se DB não estiver configurado, usa localStorage compartilhado por máquina (fallback)
       if(db){
         const ref = db.ref(path);
         ref.once('value').then(snap=>{
@@ -127,6 +140,7 @@
           ref.set(novo);
         });
       }else{
+        // fallback localStorage per-user (não sincroniza entre pessoas)
         const states = JSON.parse(localStorage.getItem('presentesState')||'{}');
         states[itemId] = {comprado: !(states[itemId] && states[itemId].comprado), ts: Date.now()};
         localStorage.setItem('presentesState', JSON.stringify(states));
@@ -134,6 +148,7 @@
       }
     }
 
+    // Se DB configurado: escuta mudanças em /presentes e renderiza
     function listenRealtime(){
       if(!db) return;
       const ref = db.ref('/presentes');
@@ -143,9 +158,10 @@
       });
     }
 
+    // Limpar dados compartilhados no Firebase (cuidado!) — sobrescreve /presentes
     function clearAll(){
       if(db){
-        if(!confirm('Apagar TODOS os estados compartilhados no banco?')) return;
+        if(!confirm('Apagar TODOS os estados compartilhados (marcação de comprado) no banco?')) return;
         db.ref('/presentes').remove();
       }else{
         localStorage.removeItem('presentesState');
@@ -153,8 +169,10 @@
       }
     }
 
-    async function init(){
+    // Carrega estado inicial: Primeiro tenta Realtime DB; se não houver config usa localStorage
+    function init(){
       if(db){
+        // inicializa itens vazios no DB caso não existam (não estritamente necessário)
         db.ref('/presentes').once('value').then(snap=>{
           if(!snap.exists()){
             const initObj = {};
@@ -165,10 +183,11 @@
         });
       }else{
         const states = JSON.parse(localStorage.getItem('presentesState')||'{}');
-        await renderList(states);
+        renderList(states);
       }
     }
 
+    // inicializa
     init();
   </script>
 </body>
